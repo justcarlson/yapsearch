@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-if (!DEEPSEEK_API_KEY) {
-  throw new Error('DEEPSEEK_API_KEY is not set in environment variables');
+if (!OPENAI_API_KEY) {
+  throw new Error('OPENAI_API_KEY is not set in environment variables');
 }
 
 // Set response timeout to 30 seconds
@@ -18,24 +18,24 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    const response = await fetch(DEEPSEEK_API_URL, {
+    const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-reasoner',
+        model: 'o3-mini',
         messages,
         stream: true,
-        max_tokens: 4000,
-        temperature: 0.7,
+        max_completion_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to get response from DeepSeek');
+      console.error('OpenAI API Error:', response.status, error);
+      throw new Error(error.message || 'Failed to get response from OpenAI');
     }
 
     if (!response.body) {
@@ -69,11 +69,20 @@ export async function POST(req: Request) {
                 data = line.slice(6);
               }
 
+              let buffer = '';
               try {
-                const parsed = JSON.parse(data);
+                buffer += data;
+                const parsed = JSON.parse(buffer);
                 controller.enqueue(encoder.encode(JSON.stringify(parsed) + '\n'));
+                buffer = '';
               } catch (e) {
-                console.error('Error parsing JSON:', e);
+                if (e instanceof SyntaxError) {
+                  // Wait for more data
+                  continue;
+                } else {
+                  console.error('Error parsing JSON:', e);
+                  buffer = '';
+                }
               }
             }
           }

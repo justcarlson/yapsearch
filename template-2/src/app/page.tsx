@@ -247,7 +247,8 @@ export default function Home() {
                 const updated = [...prev];
                 updated[sectionIndex] = {
                   ...updated[sectionIndex],
-                  response: newContent
+                  response: newContent,
+                  isLoadingThinking: false,
                 };
                 return updated;
               });
@@ -267,6 +268,19 @@ export default function Home() {
         };
         return updated;
       });
+
+      // Ensure loading states are updated correctly
+      setChatSections(prev => {
+        const updated = [...prev];
+        updated[sectionIndex] = {
+          ...updated[sectionIndex],
+          isLoadingSources: false,
+          isLoadingThinking: false,
+        };
+        return updated;
+      });
+
+      setIsLoading(false);
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request was aborted');
@@ -286,7 +300,6 @@ export default function Home() {
         });
       }
     } finally {
-      setIsLoading(false);
       setSearchStatus('');
       abortControllerRef.current = null;
     }
@@ -331,7 +344,7 @@ export default function Home() {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Ask a question..."
-                      className="w-full p-5 pr-32 rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200"
+                      className="w-full p-5 pr-32 rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200 text-black"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -738,7 +751,7 @@ export default function Home() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a question..."
-                className="w-full p-5 pr-32 rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200"
+                className="w-full p-5 pr-32 rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200 text-black"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
